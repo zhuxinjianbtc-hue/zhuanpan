@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CashApp Loyalty Program</title>
+  <style>
+    :root{
+      --bg:#f3f4f6; --card:#ffffff; --text:#111827; --muted:#6b7280;
+      --green:#16a34a; --blue:#2563eb; --red:#dc2626; --border:#e5e7eb;
+      --shadow: 0 10px 30px rgba(0,0,0,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:var(--bg); color:var(--text);
+    }
+    a{color:inherit; text-decoration:none}
+    .wrap{max-width:860px; margin:0 auto; padding:18px;}
+    .top{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:10px 12px; background:var(--card); border:1px solid var(--border);
+      border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.05);
+    }
+    .brand{font-weight:800; letter-spacing:.2px}
+    .badge{
+      font-size:12px; color:#065f46; background:#d1fae5; border:1px solid #a7f3d0;
+      padding:6px 10px; border-radius:999px; font-weight:700;
+    }
+    .hero{
+      margin-top:14px; background:var(--card); border:1px solid var(--border);
+      border-radius:18px; padding:18px; box-shadow:var(--shadow);
+    }
+    h1{margin:0 0 8px; font-size:26px; line-height:1.2}
+    .sub{color:var(--muted); line-height:1.6}
+    .stage{
+      margin-top:14px; display:grid; grid-template-columns: 1fr 340px; gap:16px;
+      align-items:start;
+    }
+    @media(max-width:860px){ .stage{grid-template-columns:1fr} }
+
+    .panel{
+      background:var(--card); border:1px solid var(--border); border-radius:18px;
+      padding:18px; box-shadow:var(--shadow);
+    }
+    .panel h2{margin:0 0 8px; font-size:18px}
+    .ctaRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    button{
+      cursor:pointer; border:0; border-radius:14px; padding:12px 14px; font-weight:800;
+    }
+    .btnPrimary{background:var(--green); color:white}
+    .btnGhost{background:transparent; border:1px solid var(--border); color:var(--text)}
+    .hint{margin-top:10px; font-size:13px; color:var(--muted)}
+
+    /* Wheel */
+    .wheelWrap{display:flex; align-items:center; justify-content:center; padding:8px 0 2px}
+    .wheelBox{position:relative; width:300px; height:300px;}
+    .pointer{
+      position:absolute; top:-8px; left:50%; transform:translateX(-50%);
+      width:0; height:0; border-left:16px solid transparent; border-right:16px solid transparent;
+      border-bottom:28px solid var(--red); filter: drop-shadow(0 6px 6px rgba(0,0,0,.15));
+      z-index:5;
+    }
+    .wheel{
+      width:300px; height:300px; border-radius:50%;
+      border:10px solid #111827;
+      box-shadow: 0 14px 28px rgba(0,0,0,.18);
+      background:
+        conic-gradient(
+          #10b981 0 45deg,
+          #f59e0b 45deg 90deg,
+          #3b82f6 90deg 135deg,
+          #ef4444 135deg 180deg,
+          #8b5cf6 180deg 225deg,
+          #22c55e 225deg 270deg,
+          #fb7185 270deg 315deg,
+          #06b6d4 315deg 360deg
+        );
+      position:absolute; inset:0;
+      transition: transform 3.2s cubic-bezier(.14,.86,.23,1);
+    }
+    .center{
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:3;
+    }
+    .hub{
+      width:92px; height:92px; border-radius:50%;
+      background:#111827; color:white; display:flex; align-items:center; justify-content:center;
+      font-weight:900; letter-spacing:.6px; border:6px solid rgba(255,255,255,.18);
+      text-transform:uppercase;
+    }
+    .wheelLabels{
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      pointer-events:none; z-index:2;
+      font-weight:900; color:white; text-shadow: 0 2px 6px rgba(0,0,0,.35);
+    }
+    .wheelLabels span{
+      position:absolute; width:120px; text-align:center; font-size:12px;
+      transform-origin: 150px 150px;
+      left:90px; top:142px;
+    }
+
+    /* Modal */
+    .modalBg{
+      position:fixed; inset:0; background:rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center; padding:18px;
+      z-index:50;
+    }
+    .modal{
+      width:min(520px, 96vw); background:var(--card); border:1px solid var(--border);
+      border-radius:18px; box-shadow:var(--shadow); padding:18px;
+    }
+    .modal h3{margin:0 0 8px; font-size:20px}
+    .modal p{margin:8px 0; color:var(--muted); line-height:1.6}
+    .modal .actions{display:flex; justify-content:flex-end; gap:10px; margin-top:14px}
+    .btnOk{background:var(--green); color:white}
+    .btnBlue{background:var(--blue); color:white}
+    .btnClose{background:transparent; border:1px solid var(--border)}
+    .countdown{
+      display:inline-block; margin-left:8px; padding:4px 8px; border-radius:999px;
+      background:#fee2e2; border:1px solid #fecaca; color:#991b1b; font-weight:900; font-size:12px;
+    }
+
+    /* Social proof */
+    .social{
+      margin-top:16px; background:var(--card); border:1px solid var(--border);
+      border-radius:18px; padding:18px; box-shadow:var(--shadow);
+    }
+    .metaRow{display:flex; gap:10px; flex-wrap:wrap; color:var(--muted); font-weight:700}
+    .metaRow b{color:var(--text)}
+    .comment{
+      margin-top:12px; padding-top:12px; border-top:1px solid var(--border);
+    }
+    .name{font-weight:900}
+    .small{font-size:12px; color:var(--muted); margin-top:4px}
+    .likeRow{font-size:12px; color:var(--muted); margin-top:6px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">CashApp Loyalty Program</div>
+      <div class="badge">Weekly Selection • Monday</div>
+    </div>
+
+    <div class="hero">
+      <h1>Congratulations!</h1>
+      <div class="sub">
+        Every Monday we select <b>7 lucky people</b> to receive a <b>$750 CashApp Gift Card</b>.
+        Spin the wheel to claim your special prize.
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="panel">
+        <h2>You're Selected Today</h2>
+        <div class="sub">
+          YOU have been selected by CashApp for a shot at a <b>$750 Gift Card</b>.
+          Simply spin the wheel to see if you're today's winner!
+        </div>
+
+        <div class="ctaRow">
+          <button class="btnPrimary" id="btnSpin">SPIN THE WHEEL</button>
+          <button class="btnGhost" id="btnRules">How it works</button>
+        </div>
+        <div class="hint">Tip: You may have <b>one extra spin</b> if you don't win the first time.</div>
+      </div>
+
+      <div class="panel">
+        <div class="wheelWrap">
+          <div class="wheelBox">
+            <div class="pointer"></div>
+            <div class="wheel" id="wheel"></div>
+            <div class="wheelLabels" aria-hidden="true">
+              <span style="transform:rotate(22.5deg) translateX(120px) rotate(-22.5deg)">TRY AGAIN</span>
+              <span style="transform:rotate(67.5deg) translateX(120px) rotate(-67.5deg)">$50</span>
+              <span style="transform:rotate(112.5deg) translateX(120px) rotate(-112.5deg)">$100</span>
+              <span style="transform:rotate(157.5deg) translateX(120px) rotate(-157.5deg)">$0</span>
+              <span style="transform:rotate(202.5deg) translateX(120px) rotate(-202.5deg)">$750</span>
+              <span style="transform:rotate(247.5deg) translateX(120px) rotate(-247.5deg)">$25</span>
+              <span style="transform:rotate(292.5deg) translateX(120px) rotate(-292.5deg)">$10</span>
+              <span style="transform:rotate(337.5deg) translateX(120px) rotate(-337.5deg)">$5</span>
+            </div>
+            <div class="center"><div class="hub">SPIN</div></div>
+          </div>
+        </div>
+        <div class="hint" style="text-align:center;margin-top:10px">
+          Secure selection • Limited availability
+        </div>
+      </div>
+    </div>
+
+    <div class="social">
+      <div class="metaRow">
+        <div><b id="likes">18,068</b> people like this</div>
+        <div>•</div>
+        <div>View Comments <b id="comments">73,312</b></div>
+      </div>
+
+      <div class="comment">
+        <div class="name">Victoria Johnson</div>
+        <div class="sub">I had never won anything, but today I was lucky! Thank you!</div>
+        <div class="likeRow">Like · Reply · <span class="small">Just now</span></div>
+      </div>
+      <div class="comment">
+        <div class="name">Phil Graham</div>
+        <div class="sub">Initially I was not sure if this is real or not, but I received my gift card today, thank you!!</div>
+        <div class="likeRow">Like · Reply · <span class="small">2 minutes ago</span></div>
+      </div>
+      <div class="comment">
+        <div class="name">Mike Hines</div>
+        <div class="sub">At first I thought this was just a joke, but the gift card arrived by mail this morning!</div>
+        <div class="likeRow">Like · Reply · <span class="small">4 minutes ago</span></div>
+      </div>
+      <div class="comment">
+        <div class="name">Sandra Moore</div>
+        <div class="sub">Sweeeet! I won an iPhone!! My gosh!</div>
+        <div class="likeRow">Like · Reply · <span class="small">8 minutes ago</span></div>
+      </div>
+      <div class="comment">
+        <div class="name">Tom Rise</div>
+        <div class="sub">I lost — Can I play again???</div>
+        <div class="likeRow">Like · Reply · <span class="small">11 minutes ago</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Intro -->
+  <div class="modalBg" id="mIntro">
+    <div class="modal">
+      <h3>Congratulations!</h3>
+      <p>
+        YOU have been selected by CashApp for a shot at a <b>$750 Gift Card</b>.
+        Simply spin the wheel to see if you're today's winner!
+      </p>
+      <p><b>Click "OK"</b> to start your spin. Good luck!</p>
+      <div class="actions">
+        <button class="btnOk" id="introOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Try again -->
+  <div class="modalBg" id="mTry">
+    <div class="modal">
+      <h3>Try again!</h3>
+      <p>You have <b>(1)</b> extra spin!</p>
+      <div class="actions">
+        <button class="btnOk" id="tryOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Win -->
+  <div class="modalBg" id="mWin">
+    <div class="modal">
+      <h3>Congratulations!</h3>
+      <p><b>(1) $750 CashApp Gift Card</b> is reserved for you!</p>
+      <p>
+        To claim your prize, click the button below and verify your information on the next page.
+      </p>
+      <p>
+        Your prize will expire in
+        <span class="countdown" id="cd">04:36</span>
+      </p>
+      <div class="actions">
+        <a id="claimBtn" class="btnBlue" href="#" rel="nofollow noopener">Claim Your Prize</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== CONFIG: Replace this with your tracker final link ======
+    const FINAL_URL = "https://example.com/track?camp=XXX&clickid={clickid}";
+    // =============================================================
+
+    const $ = (id)=>document.getElementById(id);
+
+    // Optional lightweight tracking placeholder
+    function track(ev, data={}) { console.log("[track]", ev, data); }
+
+    // Modal helpers
+    function openM(id){ $(id).style.display="flex"; }
+    function closeM(id){ $(id).style.display="none"; }
+
+    // Spin logic: 1st spin => lose (try again), 2nd spin => win
+    let spinCount = 0;
+    let spinning = false;
+    let rot = 0;
+
+    // Wheel segments are 8; pointer at top. We just pick target rotations that look good.
+    // First spin lands on "TRY AGAIN" (segment 1), second lands on "$750" (segment 5).
+    const targetAngles = {
+      tryAgain: 360 * 6 + 22.5,  // visually near the first label
+      win750:   360 * 7 + 202.5  // visually near $750 label
+    };
+
+    function doSpin() {
+      if (spinning) return;
+      spinning = true;
+      spinCount += 1;
+
+      if (spinCount === 1) track("spin_1");
+      if (spinCount === 2) track("spin_2");
+
+      const wheel = $("wheel");
+      const add = (spinCount === 1) ? targetAngles.tryAgain : targetAngles.win750;
+
+      rot = add;
+      wheel.style.transform = `rotate(${rot}deg)`;
+
+      setTimeout(()=>{
+        spinning = false;
+
+        if (spinCount === 1) {
+          track("result_try_again");
+          openM("mTry");
+        } else {
+          track("result_win");
+          openM("mWin");
+          startCountdown(4*60 + 36);
+        }
+      }, 3300);
+    }
+
+    // Countdown
+    let cdTimer = null;
+    function startCountdown(seconds) {
+      if (cdTimer) clearInterval(cdTimer);
+      const el = $("cd");
+
+      function render() {
+        const m = String(Math.floor(seconds/60)).padStart(2,"0");
+        const s = String(seconds%60).padStart(2,"0");
+        el.textContent = `${m}:${s}`;
+      }
+
+      render();
+      cdTimer = setInterval(()=>{
+        seconds -= 1;
+        render();
+        if (seconds <= 0) {
+          clearInterval(cdTimer);
+          cdTimer = null;
+          // When expired, disable CTA (optional)
+          $("claimBtn").textContent = "Expired";
+          $("claimBtn").style.pointerEvents = "none";
+          $("claimBtn").style.opacity = "0.6";
+          track("expired");
+        }
+      }, 1000);
+    }
+
+    // Hook up buttons
+    $("btnSpin").addEventListener("click", ()=> {
+      // show intro on first interaction to mimic the reference flow
+      if (spinCount === 0) {
+        openM("mIntro");
+        track("open_intro");
+      } else {
+        doSpin();
+      }
+    });
+
+    $("btnRules").addEventListener("click", ()=> {
+      alert("How it works:\\n\\n1) Spin the wheel\\n2) If you don't win, you may get one extra spin\\n3) Winners verify details on the next page");
+      track("rules");
+    });
+
+    $("introOk").addEventListener("click", ()=> {
+      closeM("mIntro");
+      doSpin();
+    });
+
+    $("tryOk").addEventListener("click", ()=> {
+      closeM("mTry");
+      // Encourage second spin
+      doSpin();
+    });
+
+    $("claimBtn").addEventListener("click", ()=>track("click_claim"));
+
+    // Set CTA link
+    $("claimBtn").href = FINAL_URL;
+
+    // Fake social proof counters (tiny drift)
+    function nfmt(n){ return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","); }
+    let likes = 18068, comments = 73312;
+    setInterval(()=>{
+      likes += Math.random() < 0.6 ? 1 : 0;
+      comments += Math.random() < 0.5 ? 1 : 0;
+      $("likes").textContent = nfmt(likes);
+      $("comments").textContent = nfmt(comments);
+    }, 2200);
+
+    // Page view
+    track("pv");
+  </script>
+</body>
+</html>
